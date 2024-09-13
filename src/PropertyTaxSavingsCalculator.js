@@ -108,9 +108,48 @@ const PropertyTaxSavingsCalculator = () => {
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Property Tax Savings Calculator</h1>
-
-      {/* Basic Inputs */}
+      
+      {/* Explanatory Sections */}
+      <div style={explanationStyle}>
+        <h2>About This Calculator</h2>
+        <p>
+          The <strong>Property Tax Savings Calculator</strong> helps you estimate potential tax savings by itemizing deductions
+          related to property ownership and retirement contributions. By inputting your financial details, the calculator 
+          compares the standard deduction against itemized deductions to determine which option offers greater tax benefits.
+        </p>
+      
+        <h2>How It Works</h2>
+        <p>
+          This calculator assesses your annual income, loan details, property taxes, home repairs, rental income (if applicable),
+          retirement contributions, and other deductions. It then calculates your taxable income and tax liability under both 
+          standard and itemized deduction scenarios, highlighting potential tax savings.
+        </p>
+      
+        <h2>Assumptions</h2>
+        <ul>
+          <li>Tax rates are based on the 2023 federal tax brackets.</li>
+          <li>The standard deduction values are set to $13,850 for single filers and $27,700 for married filing jointly.</li>
+          <li>State and local taxes are capped at $10,000.</li>
+          <li>Only mortgage interest, property tax, home repairs, rental income, rental expenses, retirement contributions, 
+              and other specified deductions are considered.</li>
+        </ul>
+      
+        <h2>Usage Instructions</h2>
+        <ol>
+          <li>Enter your annual income and loan details.</li>
+          <li>Provide information about your property taxes and any home repairs or improvements.</li>
+          <li>If you own a rental property, check the box and input your rental income and expenses.</li>
+          <li>Include your retirement contributions and any other deductions.</li>
+          <li>The calculator will automatically compute and display your tax liabilities and potential savings.</li>
+        </ol>
+        
+        <h2>Additional Information</h2>
+        <p>
+          This tool is designed for estimation purposes only. For personalized tax advice, please consult a tax professional.
+        </p>
+      </div>
+      
+      {/* Existing Calculator UI */}
       <div style={cardStyle}>
         <h2>Basic Inputs</h2>
         <div style={gridStyle}>
@@ -157,10 +196,8 @@ const PropertyTaxSavingsCalculator = () => {
             </select>
           </div>
         </div>
-      </div>
 
-      {/* Property-Related Inputs */}
-      <div style={cardStyle}>
+        {/* Property-Related Inputs */}
         <h2>Property-Related Inputs</h2>
         <div style={gridStyle}>
           <div style={inputGroupStyle}>
@@ -219,10 +256,8 @@ const PropertyTaxSavingsCalculator = () => {
             </>
           )}
         </div>
-      </div>
 
-      {/* Other Deductions and Contributions */}
-      <div style={cardStyle}>
+        {/* Other Deductions and Contributions */}
         <h2>Other Deductions and Contributions</h2>
         <div style={gridStyle}>
           <div style={inputGroupStyle}>
@@ -256,10 +291,8 @@ const PropertyTaxSavingsCalculator = () => {
             />
           </div>
         </div>
-      </div>
 
-      {/* Results */}
-      <div style={cardStyle}>
+        {/* Results */}
         <h2>Results</h2>
         <div style={gridStyle}>
           <div>
@@ -317,6 +350,15 @@ const inputStyle = {
   border: '1px solid #ccc',
   marginTop: '5px',
   fontSize: '1em',
+};
+
+const explanationStyle = {
+  border: '1px solid #e0e0e0',
+  borderRadius: '8px',
+  padding: '20px',
+  marginBottom: '20px',
+  backgroundColor: '#fafafa',
+  boxShadow: '1px 1px 8px rgba(0,0,0,0.05)',
 };
 
 export default PropertyTaxSavingsCalculator;
