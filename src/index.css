@@ -1,9 +1,23 @@
 /* src/index.css */
 
+/* Define CSS Variables for Colors */
+:root {
+  --primary-color: #4CAF50; /* Green */
+  --secondary-color: #f1f1f1; /* Light Gray */
+  --accent-color: #FF5722; /* Orange */
+  --text-color: #333333; /* Dark Gray */
+  --background-color: #ffffff; /* White */
+  --header-color: #ffffff; /* White */
+  --hover-color: #45a049; /* Darker Green */
+}
+
+/* Global Styles */
 body {
   margin: 0;
   padding: 0;
-  background-color: #f0f2f5;
+  background-color: var(--secondary-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
 }
 
 .App {
@@ -11,7 +25,12 @@ body {
 }
 
 h1, h2 {
-  color: #333;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+h2 {
+  cursor: pointer; /* For collapsible sections */
 }
 
 label {
@@ -22,4 +41,74 @@ label {
 input, select {
   width: 100%;
   box-sizing: border-box;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+  font-size: 1em;
+}
+
+/* Button Styles */
+.toggle-button {
+  background-color: var(--primary-color);
+  color: var(--header-color);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.toggle-button:hover {
+  background-color: var(--hover-color);
+}
+
+/* Collapsible Content Styles */
+.collapsible-content {
+  padding: 0 18px;
+  background-color: var(--secondary-color);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  border-left: 3px solid var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.active .collapsible-content {
+  max-height: 500px; /* Adjust as needed */
+  transition: max-height 0.5s ease-in;
+}
+
+/* Explanatory Sections Styles */
+.explanation-section {
+  background-color: var(--background-color);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 1px 1px 8px rgba(0,0,0,0.05);
+}
+
+/* Footer Styles */
+footer {
+  text-align: center;
+  margin-top: 40px;
+  padding: 20px;
+  border-top: 1px solid #ccc;
+  color: #666;
+  background-color: var(--secondary-color);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .gridStyle {
+    grid-template-columns: 1fr;
+  }
+
+  nav ul {
+    flex-direction: column;
+    align-items: center;
+  }
 }
