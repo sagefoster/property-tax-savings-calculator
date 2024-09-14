@@ -33,26 +33,24 @@ const CollapsibleSection = ({ title, children, defaultOpen = true, headerColor =
 };
 
 const PropertyTaxSavingsCalculator = () => {
-  // Basic inputs with default values set to empty strings for easier input
-  const [income, setIncome] = useState(''); // Annual Income
-  const [loanAmount, setLoanAmount] = useState(''); // Loan Amount
-  const [interestRate, setInterestRate] = useState(''); // Interest Rate
-  const [homeRepairs, setHomeRepairs] = useState(''); // Home Repairs/Improvements
+  // Basic inputs with default values
+  const [income, setIncome] = useState('100000'); // Annual Income
+  const [loanAmount, setLoanAmount] = useState('400000'); // Loan Amount
+  const [interestRate, setInterestRate] = useState('5'); // Interest Rate
   const [filingStatus, setFilingStatus] = useState('single'); // Filing Status
+  const [dependents, setDependents] = useState('0'); // Number of Dependents
 
   // Property-related inputs
   const [propertyTax, setPropertyTax] = useState(''); // Annual Property Tax
   const [isRental, setIsRental] = useState(false); // Rental Property Checkbox
   const [rentalIncome, setRentalIncome] = useState(''); // Rental Income
   const [rentalExpenses, setRentalExpenses] = useState(''); // Rental Expenses
+  const [homeRepairs, setHomeRepairs] = useState('5000'); // Home Repairs/Improvements (Moved)
 
   // Other deductions
   const [retirementContributions, setRetirementContributions] = useState(''); // Retirement Contributions
   const [otherDeductions, setOtherDeductions] = useState(''); // Other Deductions
   const [stateTaxes, setStateTaxes] = useState('0'); // State and Local Taxes (Default to 0)
-
-  // Additional Quick Start Inputs
-  const [dependents, setDependents] = useState(''); // Number of Dependents
 
   // Calculated values
   const [mortgageInterest, setMortgageInterest] = useState(0);
@@ -85,11 +83,11 @@ const PropertyTaxSavingsCalculator = () => {
     if (parseFloat(loanAmount) > 0) {
       if (interestRate === '') {
         // Set a reasonable default interest rate, e.g., 3.5%
-        setInterestRate(3.5);
+        setInterestRate(5);
       }
       if (homeRepairs === '') {
         // Set a reasonable default home repairs, e.g., $2,000
-        setHomeRepairs(2000);
+        setHomeRepairs(5000);
       }
     } else {
       // Reset interest rate and home repairs if no loan
@@ -181,9 +179,6 @@ const PropertyTaxSavingsCalculator = () => {
     const taxLiabilityItem = calculateTax(taxableIncomeItem);
     setTaxLiabilityItemized(taxLiabilityItem);
 
-    // Calculate tax savings before credits
-    const savingsBeforeCredits = taxLiabilityStd - taxLiabilityItem;
-
     // Calculate tax credits based on dependents ($2000 per dependent)
     const taxCredits = parsedDependents * 2000;
     const taxLiabilityItemWithCredits = Math.max(0, taxLiabilityItem - taxCredits);
@@ -193,34 +188,48 @@ const PropertyTaxSavingsCalculator = () => {
     const finalSavings = taxLiabilityStd - taxLiabilityItemWithCredits;
     setTaxSavings(finalSavings);
 
-    // Generate explanation based on tax liability change
+    // Generate detailed explanation based on tax liability change
     if (previous !== null) {
       if (finalSavings > 0) {
         setExplanation(
-          'Your tax liability decreased because your itemized deductions and dependents tax credits are higher than the standard deduction.'
+          `By choosing to itemize your deductions, you reduced your taxable income more than the standard deduction would have allowed. This resulted in tax savings of $${finalSavings.toFixed(
+            2
+          )}. Essentially, itemizing allowed you to owe $${finalSavings.toFixed(
+            2
+          )} less in taxes compared to taking the standard deduction.`
         );
       } else if (finalSavings < 0) {
         setExplanation(
-          'Your tax liability increased because your itemized deductions and dependents tax credits are lower than the standard deduction.'
+          `By choosing the standard deduction, you reduced your taxable income more effectively than itemizing your deductions would have. This resulted in tax savings of $${Math.abs(
+            finalSavings
+          ).toFixed(2)}. Essentially, taking the standard deduction allowed you to owe $${Math.abs(
+            finalSavings
+          ).toFixed(2)} less in taxes compared to itemizing your deductions.`
         );
       } else {
         setExplanation(
-          'Your tax liability remains the same as your itemized deductions and dependents tax credits equal the standard deduction.'
+          'Your itemized deductions and the standard deduction are equal, resulting in no difference in your tax liability.'
         );
       }
     } else {
       // First calculation
       if (finalSavings > 0) {
         setExplanation(
-          'Based on your inputs, your itemized deductions and dependents tax credits are higher than the standard deduction, resulting in tax savings.'
+          `Based on your inputs, choosing to itemize your deductions reduces your taxable income more than the standard deduction. This results in tax savings of $${finalSavings.toFixed(
+            2
+          )}. This means you owe $${finalSavings.toFixed(2)} less in taxes by itemizing your deductions.`
         );
       } else if (finalSavings < 0) {
         setExplanation(
-          'Based on your inputs, your itemized deductions and dependents tax credits are lower than the standard deduction, resulting in higher tax liability.'
+          `Based on your inputs, choosing the standard deduction reduces your taxable income more effectively than itemizing your deductions. This results in tax savings of $${Math.abs(
+            finalSavings
+          ).toFixed(2)}. This means you owe $${Math.abs(finalSavings).toFixed(
+            2
+          )} less in taxes by taking the standard deduction.`
         );
       } else {
         setExplanation(
-          'Based on your inputs, your itemized deductions and dependents tax credits equal the standard deduction, resulting in no change to your tax liability.'
+          'Based on your inputs, your itemized deductions and the standard deduction are equal, resulting in no change to your tax liability.'
         );
       }
     }
@@ -246,7 +255,7 @@ const PropertyTaxSavingsCalculator = () => {
 
     // If loan amount is entered, set default home repairs if empty
     if (parsedQuickLoanAmount > 0 && homeRepairs === '') {
-      setHomeRepairs(2000);
+      setHomeRepairs(5000);
     }
   };
 
@@ -370,11 +379,14 @@ const PropertyTaxSavingsCalculator = () => {
               type="number"
               value={income}
               onChange={(e) => setIncome(e.target.value)}
-              style={inputStyle}
-              placeholder="e.g., 500000"
+              style={{ ...inputStyle, backgroundColor: '#f0f0f0' }}
+              placeholder="e.g., 100000"
               min="0"
               step="1000"
             />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Your annual income is used to determine your taxable income and potential deductions.
+            </small>
           </div>
           <div style={inputGroupStyle}>
             <label htmlFor="loanAmount">Loan Amount ($)</label>
@@ -383,11 +395,14 @@ const PropertyTaxSavingsCalculator = () => {
               type="number"
               value={loanAmount}
               onChange={(e) => setLoanAmount(e.target.value)}
-              style={inputStyle}
-              placeholder="e.g., 200000"
+              style={{ ...inputStyle, backgroundColor: '#f0f0f0' }}
+              placeholder="e.g., 400000"
               min="0"
               step="1000"
             />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Having a mortgage allows you to deduct mortgage interest from your taxable income, potentially lowering your tax liability.
+            </small>
           </div>
           <div style={inputGroupStyle}>
             <label htmlFor="interestRate">Interest Rate (%)</label>
@@ -396,26 +411,15 @@ const PropertyTaxSavingsCalculator = () => {
               type="number"
               value={interestRate}
               onChange={(e) => setInterestRate(e.target.value)}
-              style={inputStyle}
-              placeholder="e.g., 3.5"
+              style={{ ...inputStyle, backgroundColor: '#f0f0f0' }}
+              placeholder="e.g., 5"
               disabled={loanAmount === '' || parseFloat(loanAmount) === 0}
               min="0"
               step="0.01"
             />
-          </div>
-          <div style={inputGroupStyle}>
-            <label htmlFor="homeRepairs">Home Repairs/Improvements ($)</label>
-            <input
-              id="homeRepairs"
-              type="number"
-              value={homeRepairs}
-              onChange={(e) => setHomeRepairs(e.target.value)}
-              style={inputStyle}
-              placeholder="e.g., 2000"
-              disabled={loanAmount === '' || parseFloat(loanAmount) === 0}
-              min="0"
-              step="100"
-            />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> The interest rate on your loan affects the amount of mortgage interest you can deduct.
+            </small>
           </div>
           <div style={inputGroupStyle}>
             <label htmlFor="filingStatus">Filing Status</label>
@@ -423,11 +427,14 @@ const PropertyTaxSavingsCalculator = () => {
               id="filingStatus"
               value={filingStatus}
               onChange={(e) => setFilingStatus(e.target.value)}
-              style={inputStyle}
+              style={{ ...inputStyle, backgroundColor: '#f0f0f0' }}
             >
               <option value="single">Single</option>
               <option value="married">Married Filing Jointly</option>
             </select>
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Your filing status determines the standard deduction amount and tax brackets applicable to you.
+            </small>
           </div>
           <div style={inputGroupStyle}>
             <label htmlFor="dependents">Number of Dependents</label>
@@ -436,11 +443,14 @@ const PropertyTaxSavingsCalculator = () => {
               type="number"
               value={dependents}
               onChange={(e) => setDependents(e.target.value)}
-              style={inputStyle}
-              placeholder="e.g., 2"
+              style={{ ...inputStyle, backgroundColor: '#f0f0f0' }}
+              placeholder="e.g., 0"
               min="0"
               step="1"
             />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Having dependents can provide tax credits that reduce your overall tax liability.
+            </small>
           </div>
         </div>
 
@@ -459,6 +469,9 @@ const PropertyTaxSavingsCalculator = () => {
               min="0"
               step="100"
             />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Property taxes are deductible if you itemize deductions, potentially lowering your taxable income.
+            </small>
           </div>
           <div style={inputGroupStyle}>
             <label htmlFor="homeRepairs">Home Repairs/Improvements ($)</label>
@@ -467,12 +480,15 @@ const PropertyTaxSavingsCalculator = () => {
               type="number"
               value={homeRepairs}
               onChange={(e) => setHomeRepairs(e.target.value)}
-              style={inputStyle}
-              placeholder="e.g., 2000"
+              style={{ ...inputStyle, backgroundColor: '#f0f0f0' }}
+              placeholder="e.g., 5000"
               disabled={loanAmount === '' || parseFloat(loanAmount) === 0}
               min="0"
               step="100"
             />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Expenses for home repairs and improvements may be deductible if you itemize your deductions.
+            </small>
           </div>
           <div style={{ ...inputGroupStyle, gridColumn: 'span 2' }}>
             <label style={checkboxLabelStyle}>
@@ -499,6 +515,9 @@ const PropertyTaxSavingsCalculator = () => {
                   min="0"
                   step="100"
                 />
+                <small style={{ color: '#555' }}>
+                  <em>Note:</em> Rental income is considered in your taxable income and affects your overall tax liability.
+                </small>
               </div>
               <div style={inputGroupStyle}>
                 <label htmlFor="rentalExpenses">Rental Expenses ($)</label>
@@ -512,6 +531,9 @@ const PropertyTaxSavingsCalculator = () => {
                   min="0"
                   step="100"
                 />
+                <small style={{ color: '#555' }}>
+                  <em>Note:</em> Rental expenses can be deducted from your rental income, potentially lowering your tax liability.
+                </small>
               </div>
             </>
           )}
@@ -532,6 +554,9 @@ const PropertyTaxSavingsCalculator = () => {
               min="0"
               step="100"
             />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Contributions to retirement accounts may be deductible, reducing your taxable income.
+            </small>
           </div>
           <div style={inputGroupStyle}>
             <label htmlFor="otherDeductions">Other Deductions ($)</label>
@@ -545,6 +570,9 @@ const PropertyTaxSavingsCalculator = () => {
               min="0"
               step="100"
             />
+            <small style={{ color: '#555' }}>
+              <em>Note:</em> Other deductions can include various eligible expenses that reduce your taxable income when itemizing.
+            </small>
           </div>
           <div style={inputGroupStyle}>
             <label htmlFor="stateTaxes">State and Local Taxes ($)</label>
@@ -559,7 +587,7 @@ const PropertyTaxSavingsCalculator = () => {
               step="100"
             />
             <small style={{ color: '#555' }}>
-              <em>Note:</em> State taxes are set to $0 by default, assuming many users may reside in states like Texas that do not impose state income tax. Please adjust accordingly based on your state's tax laws.
+              <em>Note:</em> State taxes are set to $0 by default, assuming users may reside in states like Texas that do not impose state income tax. Please adjust accordingly based on your state's tax laws.
             </small>
           </div>
         </div>
