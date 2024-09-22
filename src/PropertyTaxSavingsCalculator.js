@@ -41,15 +41,15 @@ const PropertyTaxSavingsCalculator = () => {
   const [dependents, setDependents] = useState('0'); // Number of Dependents
 
   // Property-related inputs
-  const [propertyTax, setPropertyTax] = useState(''); // Annual Property Tax
+  const [propertyTax, setPropertyTax] = useState('10000'); // Annual Property Tax (Added default value)
   const [isRental, setIsRental] = useState(false); // Rental Property Checkbox
-  const [rentalIncome, setRentalIncome] = useState(''); // Rental Income
-  const [rentalExpenses, setRentalExpenses] = useState(''); // Rental Expenses
-  const [homeRepairs, setHomeRepairs] = useState('5000'); // Home Repairs/Improvements (Moved)
+  const [rentalIncome, setRentalIncome] = useState('15000'); // Rental Income (Added default value)
+  const [rentalExpenses, setRentalExpenses] = useState('5000'); // Rental Expenses (Added default value)
+  const [homeRepairs, setHomeRepairs] = useState('5000'); // Home Repairs/Improvements
 
   // Other deductions
-  const [retirementContributions, setRetirementContributions] = useState(''); // Retirement Contributions
-  const [otherDeductions, setOtherDeductions] = useState(''); // Other Deductions
+  const [retirementContributions, setRetirementContributions] = useState('10000'); // Retirement Contributions (Added default value)
+  const [otherDeductions, setOtherDeductions] = useState('3000'); // Other Deductions (Added default value)
   const [stateTaxes, setStateTaxes] = useState('0'); // State and Local Taxes (Default to 0)
 
   // Calculated values
@@ -62,7 +62,8 @@ const PropertyTaxSavingsCalculator = () => {
   const [taxLiabilityItemized, setTaxLiabilityItemized] = useState(0);
   const [taxSavings, setTaxSavings] = useState(0);
   const [netRentalIncome, setNetRentalIncome] = useState(0);
-  const [previousTaxLiability, setPreviousTaxLiability] = useState(null);
+  const [recommendation, setRecommendation] = useState('');
+  const [calculationBreakdown, setCalculationBreakdown] = useState('');
   const [explanation, setExplanation] = useState('');
 
   // Quick Input Inputs
@@ -82,11 +83,11 @@ const PropertyTaxSavingsCalculator = () => {
   useEffect(() => {
     if (parseFloat(loanAmount) > 0) {
       if (interestRate === '') {
-        // Set a reasonable default interest rate, e.g., 3.5%
+        // Set a reasonable default interest rate, e.g., 5%
         setInterestRate(5);
       }
       if (homeRepairs === '') {
-        // Set a reasonable default home repairs, e.g., $2,000
+        // Set a reasonable default home repairs, e.g., $5,000
         setHomeRepairs(5000);
       }
     } else {
@@ -132,10 +133,6 @@ const PropertyTaxSavingsCalculator = () => {
     const parsedStateTaxes = parseFloat(stateTaxes) || 0;
     const parsedDependents = parseInt(dependents) || 0;
 
-    // Store previous tax liability for comparison
-    const previous = taxLiabilityItemized;
-    setPreviousTaxLiability(previous);
-
     // Calculate mortgage interest
     const annualMortgageInterest = (parsedLoanAmount * parsedInterestRate) / 100;
     setMortgageInterest(annualMortgageInterest);
@@ -148,7 +145,7 @@ const PropertyTaxSavingsCalculator = () => {
     let totalItemizedDeductions =
       annualMortgageInterest +
       parsedPropertyTax +
-      Math.min(parsedStateTaxes, 10000) +
+      Math.min(parsedStateTaxes, 10000) + // SALT deduction cap
       parsedOtherDeductions;
     if (!isRental) {
       totalItemizedDeductions += parsedHomeRepairs;
@@ -182,57 +179,61 @@ const PropertyTaxSavingsCalculator = () => {
     // Calculate tax credits based on dependents ($2000 per dependent)
     const taxCredits = parsedDependents * 2000;
     const taxLiabilityItemWithCredits = Math.max(0, taxLiabilityItem - taxCredits);
-    setTaxLiabilityItemized(taxLiabilityItemWithCredits);
 
-    // Calculate final tax savings after credits
-    const finalSavings = taxLiabilityStd - taxLiabilityItemWithCredits;
-    setTaxSavings(finalSavings);
+    // Calculate tax savings
+    const savings = taxLiabilityStd - taxLiabilityItemWithCredits;
+    setTaxSavings(savings);
+
+    // Determine recommendation
+    if (savings > 0) {
+      setRecommendation('Itemize Deductions');
+    } else if (savings < 0) {
+      setRecommendation('Take Standard Deduction');
+    } else {
+      setRecommendation('Either Option Works');
+    }
 
     // Generate detailed explanation based on tax liability change
-    if (previous !== null) {
-      if (finalSavings > 0) {
-        setExplanation(
-          `By choosing to itemize your deductions, you reduced your taxable income more than the standard deduction would have allowed. This resulted in tax savings of $${finalSavings.toFixed(
-            2
-          )}. Essentially, itemizing allowed you to owe $${finalSavings.toFixed(
-            2
-          )} less in taxes compared to taking the standard deduction.`
-        );
-      } else if (finalSavings < 0) {
-        setExplanation(
-          `By choosing the standard deduction, you reduced your taxable income more effectively than itemizing your deductions would have. This resulted in tax savings of $${Math.abs(
-            finalSavings
-          ).toFixed(2)}. Essentially, taking the standard deduction allowed you to owe $${Math.abs(
-            finalSavings
-          ).toFixed(2)} less in taxes compared to itemizing your deductions.`
-        );
-      } else {
-        setExplanation(
-          'Your itemized deductions and the standard deduction are equal, resulting in no difference in your tax liability.'
-        );
-      }
+    if (savings > 0) {
+      setExplanation(
+        `Choosing to itemize your deductions reduces your taxable income more than the standard deduction, resulting in tax savings of $${savings.toFixed(
+          2
+        )}. This means you owe $${savings.toFixed(2)} less in taxes by itemizing your deductions compared to taking the standard deduction.`
+      );
+    } else if (savings < 0) {
+      setExplanation(
+        `Taking the standard deduction reduces your taxable income more effectively than itemizing your deductions, resulting in tax savings of $${Math.abs(
+          savings
+        ).toFixed(
+          2
+        )}. This means you owe $${Math.abs(savings).toFixed(
+          2
+        )} less in taxes by taking the standard deduction compared to itemizing your deductions.`
+      );
     } else {
-      // First calculation
-      if (finalSavings > 0) {
-        setExplanation(
-          `Based on your inputs, choosing to itemize your deductions reduces your taxable income more than the standard deduction. This results in tax savings of $${finalSavings.toFixed(
-            2
-          )}. This means you owe $${finalSavings.toFixed(2)} less in taxes by itemizing your deductions.`
-        );
-      } else if (finalSavings < 0) {
-        setExplanation(
-          `Based on your inputs, choosing the standard deduction reduces your taxable income more effectively than itemizing your deductions. This results in tax savings of $${Math.abs(
-            finalSavings
-          ).toFixed(2)}. This means you owe $${Math.abs(finalSavings).toFixed(
-            2
-          )} less in taxes by taking the standard deduction.`
-        );
-      } else {
-        setExplanation(
-          'Based on your inputs, your itemized deductions and the standard deduction are equal, resulting in no change to your tax liability.'
-        );
-      }
+      setExplanation(
+        'Your itemized deductions and the standard deduction are equal, resulting in no difference in your tax liability.'
+      );
     }
+
+    // Generate calculation breakdown
+    setCalculationBreakdown(`
+      **Standard Deduction:**
+      - Taxable Income: $${taxableIncomeStd.toFixed(2)}
+      - Tax Liability: $${taxLiabilityStd.toFixed(2)}
+
+      **Itemized Deductions:**
+      - Total Itemized Deductions: $${totalItemizedDeductions.toFixed(2)}
+      - Taxable Income: $${taxableIncomeItem.toFixed(2)}
+      - Tax Liability before Credits: $${taxLiabilityItem.toFixed(2)}
+      - Tax Credits: $${taxCredits.toFixed(2)}
+      - Tax Liability after Credits: $${taxLiabilityItemWithCredits.toFixed(2)}
+
+      **Comparison:**
+      - Tax Savings: $${savings > 0 ? savings.toFixed(2) : Math.abs(savings).toFixed(2)} ${
+      savings > 0 ? 'by itemizing deductions.' : savings < 0 ? 'by taking the standard deduction.' : 'with either option.'
+    }
+    `);
   };
 
   const handleQuickInputSubmit = (e) => {
@@ -246,12 +247,12 @@ const PropertyTaxSavingsCalculator = () => {
     const parsedQuickDependents = parseInt(quickDependents) || 0;
 
     // Update the main calculator inputs
-    setIncome(parsedQuickIncome);
-    setRetirementContributions(parsedQuickRetirement);
-    setLoanAmount(parsedQuickLoanAmount);
-    setInterestRate(parsedQuickInterestRate);
-    setFilingStatus(parsedQuickFilingStatus);
-    setDependents(parsedQuickDependents);
+    setIncome(parsedQuickIncome || '100000'); // Default to 100,000 if empty
+    setRetirementContributions(parsedQuickRetirement || '10000'); // Default to 10,000
+    setLoanAmount(parsedQuickLoanAmount || '400000'); // Default to 400,000
+    setInterestRate(parsedQuickInterestRate || '5'); // Default to 5%
+    setFilingStatus(parsedQuickFilingStatus || 'single');
+    setDependents(parsedQuickDependents.toString() || '0');
 
     // If loan amount is entered, set default home repairs if empty
     if (parsedQuickLoanAmount > 0 && homeRepairs === '') {
@@ -274,7 +275,6 @@ const PropertyTaxSavingsCalculator = () => {
               onChange={(e) => setQuickIncome(e.target.value)}
               placeholder="X"
               style={quickInputStyle}
-              required
               min="0"
             />
             <span> dollars a year,</span>
@@ -287,7 +287,6 @@ const PropertyTaxSavingsCalculator = () => {
               onChange={(e) => setQuickRetirement(e.target.value)}
               placeholder="X"
               style={quickInputStyle}
-              required
               min="0"
             />
             <span> to retirement,</span>
@@ -600,7 +599,7 @@ const PropertyTaxSavingsCalculator = () => {
         </div>
 
         {/* Results */}
-        {taxLiabilityStandard !== 0 && taxLiabilityItemized !== 0 && (
+        {(taxLiabilityStandard !== 0 || taxLiabilityItemized !== 0) && (
           <>
             <h2 style={sectionHeaderStyle}>Results</h2>
             <div style={gridStyle}>
@@ -619,11 +618,14 @@ const PropertyTaxSavingsCalculator = () => {
             </div>
             <div style={{ marginTop: '20px' }}>
               <p style={taxSavingsStyle}>
-                Tax Savings: ${taxSavings > 0 ? taxSavings.toFixed(2) : '0.00'}
+                Recommendation: <strong>{recommendation}</strong>
               </p>
               <p style={taxSavingsExplanationStyle}>
                 {explanation}
               </p>
+              <CollapsibleSection title="Calculation Breakdown" defaultOpen={false}>
+                <pre style={{ whiteSpace: 'pre-wrap', color: '#333' }}>{calculationBreakdown}</pre>
+              </CollapsibleSection>
             </div>
           </>
         )}
@@ -685,6 +687,13 @@ const PropertyTaxSavingsCalculator = () => {
             Always consult with a tax professional to understand which deduction and credit options are most advantageous for your specific financial situation.
           </p>
         </CollapsibleSection>
+      </div>
+
+      {/* Disclaimer Section */}
+      <div style={disclaimerContainerStyle}>
+        <p style={disclaimerStyle}>
+          <strong>Disclaimer:</strong> The information and calculations provided by this tool are for informational purposes only and do not constitute professional tax advice. While efforts have been made to ensure accuracy, these estimates are not guaranteed to be 100% accurate. Users should consult a qualified tax professional before making any tax-related decisions.
+        </p>
       </div>
     </div>
   );
@@ -842,6 +851,18 @@ const taxSavingsExplanationStyle = {
 const learnMoreContainerStyle = {
   marginTop: '40px',
   marginBottom: '40px',
+};
+
+const disclaimerContainerStyle = {
+  marginTop: '40px',
+  paddingTop: '10px',
+  borderTop: '1px solid #ccc',
+};
+
+const disclaimerStyle = {
+  color: 'red',
+  fontSize: '0.9em',
+  lineHeight: '1.5',
 };
 
 // Export the component
